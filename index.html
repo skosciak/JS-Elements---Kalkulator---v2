@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang = 'en'>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="Simple calculator with plus, multiply, minus">
+        <link rel="icon" href="Assets/IG.png">
+        <link rel="stylesheet" type="text/css" href="styles.css">
+        <title>Sebastian Kościak - Calculator</title>
+    </head>
+    <body>
+        <div id = "kalkulator">
+            <p id = "showresult"></p>
+            <div id = "kalkulator-buttons">
+                <div id = "button-7" class = "buttons digit"><p>7</p></div>
+                <div id = "button-8" class = "buttons digit"><p>8</p></div>
+                <div id = "button-9" class = "buttons digit"><p>9</p></div>
+                <div id = "multiply" class = "buttons operator"><p>*</p></div>
+                <div id = "button-4" class = "buttons digit"><p>4</p></div>
+                <div id = "button-5" class = "buttons digit"><p>5</p></div>
+                <div id = "button-6" class = "buttons digit"><p>6</p></div>
+                <div id = "plus" class = "buttons operator"><p>+</p></div>
+                <div id = "button-1" class = "buttons digit"><p>1</p></div>
+                <div id = "button-2" class = "buttons digit"><p>2</p></div>
+                <div id = "button-3" class = "buttons digit"><p>3</p></div>
+                <div id = "minus" class = "buttons operator"><p>-</p></div>
+                <div id = "C" class = "buttons operator"><p>C</p></div>
+                <div id = "button-0" class = "buttons digit"><p>0</p></div>
+                <div id = "CE" class = "buttons operator"><p>CE</p></div>
+                <div id = "sum" class = "buttons operator"><p>=</p></div>
+            </div>
+        </div>
+        <div id = "history">
+            <h1>Historia</h1>
+            <div id = "historycontainer">
+            </div>
+        </div>
+    </body>
+    <script type="text/javascript">
+        //Ładowanie funkcji po otwarciu strony
+
+        let myApp = {
+            numbers: [],
+            operators: [],
+            join_numbers: []
+        }
+
+        function clearMyApp() {
+            myApp.join_numbers = [];
+            myApp.operators = [];
+            myApp.numbers = [];
+            display();
+        };
+
+        function displayResult(summary) {
+            const Display = document.getElementById('showresult');
+            Display.innerText = summary; 
+        };
+
+        function display(key){
+            const Display = document.getElementById('showresult');
+            if (key != undefined)
+                Display.innerText += key; 
+            else
+                Display.innerText = '';
+        };
+
+        function checkForMultiply() {
+            let loop_count = 0;
+            for (const i of myApp.operators) {
+                if (i === '*') {
+                    myApp.join_numbers.splice(loop_count, 2, (myApp.join_numbers[loop_count] *  myApp.join_numbers[loop_count + 1]));
+                    myApp.operators.splice(loop_count, 1);
+                };
+                loop_count++;
+            };
+        };
+
+        function checkOperatorForSummary(i) {
+            switch (myApp.operators[0]) {
+                case '+':
+                    myApp.operators.shift();
+                    return myApp.join_numbers[0] + myApp.join_numbers[1];
+
+                case '-':
+                    myApp.operators.shift();
+                    return myApp.join_numbers[0] - myApp.join_numbers[1];
+            };
+        };
+
+        function summary(){
+            let summary;
+            checkForMultiply();
+            const operators_lenght = myApp.operators.length;
+            for (i = 0; i < operators_lenght; i++) {
+                if (myApp.join_numbers[2] == undefined) {
+                    summary = checkOperatorForSummary(i);
+                    displayResult(summary);
+                }
+                else {
+                    summary = checkOperatorForSummary(i);
+                    if (i === 0){
+                        myApp.join_numbers.shift();
+                        myApp.join_numbers.shift();
+                        myApp.join_numbers.unshift(summary);
+                    }
+                    else {
+                        myApp.join_numbers.shift();
+                        myApp.join_numbers.unshift(summary);
+                    }
+                };
+            };
+        };
+
+        function joinNumbers() {
+            myApp.join_numbers[myApp.join_numbers.length] = parseInt(myApp.numbers.join(''));
+            myApp.numbers = [];
+        };
+
+        function saveNumber(key) {
+            let number = undefined;
+            if (typeof key === 'number') {
+                number = key;
+            }
+            else {
+                number = parseInt(key.composedPath()[1].innerText);
+            }
+
+            if ((myApp.operators.length !== 1) && (myApp.numbers.length !== 0)){
+                myApp.numbers[0] = myApp.operators + number;
+                myApp.operators.shift();
+            }
+            else
+                myApp.numbers[myApp.numbers.length] = number;
+            display(number);
+        };
+
+        function saveOperator(key) {
+            let operator = undefined;
+            if (typeof key === 'string') {
+                operator = key;
+            }
+            else {
+                operator = key.composedPath()[1].innerText;
+            }
+
+            if (operator === '=') {
+                joinNumbers();
+                summary();
+            }
+            else {
+                myApp.operators[myApp.operators.length] = operator;
+                display(operator);
+                if (myApp.numbers[0] !== undefined)
+                    joinNumbers();
+            };
+        };
+
+        function checkKeyboardKey(e) {
+            let key = e.key;
+            switch (key){
+                case '+':
+                    saveOperator('+');
+                    break;
+
+                case '-':
+                    saveOperator('-');
+                    break;
+
+                case '*':
+                    saveOperator('*');
+                    break;
+
+                case '=':
+                    saveOperator('=');
+                    break;
+
+                case 'c':
+                case 'C':
+                case 'Backspace':
+                    clearLastChar();
+                    break;
+
+                case 'Delete':
+                    clearMyApp();
+                    break;
+
+                default:
+                    key = parseInt(key);
+                    for (let i = 0; i < 10; i++) {
+                        if (i === key){
+                            saveNumber(key);
+                            return;
+                        }
+                    };
+
+            };
+                
+        }
+
+        //Dodawanie wszystkich Listenerów
+        function init() {
+            const digits = document.querySelectorAll('.digit');
+            const operators = document.querySelectorAll('.operator');
+            window.addEventListener('keyup', () => {
+                    checkKeyboardKey(event);
+                });
+            digits.forEach((el) => {
+                el.addEventListener('click', () => {
+                    saveNumber(event);
+                });
+            });
+            operators.forEach((el) => {
+                el.addEventListener('click', () => {
+                    saveOperator(event);
+                });
+            });
+            console.log('Loaded mouse events');
+        };
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</html>

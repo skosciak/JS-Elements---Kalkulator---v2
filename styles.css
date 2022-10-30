@@ -1,0 +1,149 @@
+
+:root {
+    --bg-color: #3a4c29;;
+    --bg-display: #E2E2E2;
+    --bg-border: #040404;
+    --bg-button: #5f6a54;
+}
+
+@font-face {
+    font-family: Bebas;
+    src: url(Assets/BebasNeue-Regular.ttf);
+}
+
+@media only screen and (max-width : 320px) {
+    html {
+        font-size: 7px;
+    }
+}
+
+@media only screen and (min-width : 320px) {
+    html {
+        font-size: 10px;
+    }
+}
+
+@media only screen and (min-width : 480px) {
+    html {
+        font-size: 14px;
+    }
+}
+
+@media only screen and (min-width : 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+@media only screen and (min-width : 1200px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+html {
+    height: 100%;
+}
+
+body {
+    font-family: Bebas;
+    background-image: linear-gradient(45deg, #222739, #471034);
+}
+
+#kalkulator {
+    height: 37.5em;
+    max-height: 50em;
+    width: 37.5em;
+    max-width: 50em;
+    background-color: var(--bg-color);
+    border: .25em solid var(--bg-border);
+    border-radius: 1.60em;
+    margin: 3em auto 0 auto;
+    box-shadow: 0 0 .625em var(--bg-border);
+}
+
+#showresult {
+    position: relative;
+    margin: 1rem;
+    height: 3rem;
+    border: .5rem solid var(--bg-border);
+    border-radius: 1rem;
+    background-color: var(--bg-display);
+    text-align: center;
+    font-size: 2.5em;
+    overflow: hidden;
+}
+
+#kalkulator-buttons {
+    position: relative;
+    height: 80%;
+    margin: 1rem;
+    display: grid;
+    grid-template-columns: repeat(4, 8.2em);
+    grid-template-rows: repeat(4, 6.75em);
+    grid-gap: 1rem;
+    grid-template-areas:
+        "button-7 button-8 button-9 multiply"
+        "button-4 button-5 button-6 plus"
+        "button-1 button-2 button-3 minus"
+        "button-round-up button-0 button-round-down sum";
+}
+
+.buttons {
+    background-color: var(--bg-button);
+    border: .25rem solid var(--bg-border);
+    border-radius: 1rem;
+    text-align: center;
+}
+
+.buttons:hover {
+    background-color: #E2E2E2;
+}
+
+.buttons p {
+    font-size: 4.75em;
+    height: 1.15em;
+    width: 1em;
+    margin: 0;
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--bg-border);
+}
+
+.buttons:hover p {
+    color: var(--bg-color);
+}
+
+#history {
+    width: 37.5em;
+    max-height: 37.5em;
+    background-color: var(--bg-display);
+    margin: 1em auto 1em auto;
+    box-shadow: 0px 0px 10px #999494;
+    border: 0;
+    border-radius: .625em;
+}
+
+#history h1 {
+    font-size: 4em;
+    text-align: center;
+    margin: 0;
+}
+
+#historycontainer {
+    font-size: 2em;
+    max-height: 31.25rem;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+#historycontainer::-webkit-scrollbar {
+    display: none;
+}
+
+.showhistory-p {
+    text-align: center;
+    border-bottom: .125em solid var(--bg-border);
+}
