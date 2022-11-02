@@ -66,15 +66,20 @@
                 Display.innerText = '';
         };
 
-        function checkForMultiply() {
+        function multiply() {
             let loop_count = 0;
+            const id_array_for_operators = [...myApp.operators];
             for (const i of myApp.operators) {
                 if (i === '*') {
                     myApp.join_numbers.splice(loop_count, 2, (myApp.join_numbers[loop_count] *  myApp.join_numbers[loop_count + 1]));
-                    myApp.operators.splice(loop_count, 1);
+                    id_array_for_operators.splice(loop_count, 1);
+                    loop_count = loop_count - 1;
                 };
                 loop_count++;
             };
+            myApp.operators = [...id_array_for_operators];
+            if (loop_count !== 0)
+                return true;
         };
 
         function checkOperatorForSummary(i) {
@@ -89,9 +94,11 @@
             };
         };
 
-        function summary(){
+        function summary(multiply_present){
             let summary;
-            checkForMultiply();
+            if((multiply_present === true) && (myApp.operators.length === 0))
+                displayResult(myApp.join_numbers[0]);
+
             const operators_lenght = myApp.operators.length;
             for (i = 0; i < operators_lenght; i++) {
                 if (myApp.join_numbers[2] == undefined) {
@@ -100,15 +107,9 @@
                 }
                 else {
                     summary = checkOperatorForSummary(i);
-                    if (i === 0){
-                        myApp.join_numbers.shift();
-                        myApp.join_numbers.shift();
-                        myApp.join_numbers.unshift(summary);
-                    }
-                    else {
-                        myApp.join_numbers.shift();
-                        myApp.join_numbers.unshift(summary);
-                    }
+                    myApp.join_numbers.shift();
+                    myApp.join_numbers.shift();
+                    myApp.join_numbers.unshift(summary);
                 };
             };
         };
@@ -127,7 +128,7 @@
                 number = parseInt(key.composedPath()[1].innerText);
             }
 
-            if ((myApp.operators.length !== 1) && (myApp.numbers.length !== 0)){
+            if (myApp.operators[0] === '-'){
                 myApp.numbers[0] = myApp.operators + number;
                 myApp.operators.shift();
             }
@@ -147,7 +148,8 @@
 
             if (operator === '=') {
                 joinNumbers();
-                summary();
+                const found_multiply_operator = multiply();
+                found_multiply_operator ? summary(found_multiply_operator) : summary(); //if true no variable in summary else pass variable
             }
             else {
                 myApp.operators[myApp.operators.length] = operator;
@@ -157,7 +159,7 @@
             };
         };
 
-        function checkKeyboardKey(e) {
+        function checkKeyboardKey(e) { //Sprawdzenie jaki klawisz został kliknięty na klawiaturze
             let key = e.key;
             switch (key){
                 case '+':
@@ -203,15 +205,15 @@
         function init() {
             const digits = document.querySelectorAll('.digit');
             const operators = document.querySelectorAll('.operator');
-            window.addEventListener('keyup', () => {
+            window.addEventListener('keyup', () => { //Dodawanie eventów do kliknięć klawiaturą
                     checkKeyboardKey(event);
                 });
-            digits.forEach((el) => {
+            digits.forEach((el) => { //Dodawanie eventów do numerów
                 el.addEventListener('click', () => {
                     saveNumber(event);
                 });
             });
-            operators.forEach((el) => {
+            operators.forEach((el) => { //Dodawanie eventów do operatorów
                 el.addEventListener('click', () => {
                     saveOperator(event);
                 });
