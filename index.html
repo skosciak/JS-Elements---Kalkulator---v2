@@ -25,9 +25,9 @@
                 <div id = "button-2" class = "buttons digit"><p>2</p></div>
                 <div id = "button-3" class = "buttons digit"><p>3</p></div>
                 <div id = "minus" class = "buttons operator"><p>-</p></div>
-                <div id = "C" class = "buttons operator"><p>C</p></div>
+                <div id = "C" class = "buttons functional_buttons"><p>C</p></div>
                 <div id = "button-0" class = "buttons digit"><p>0</p></div>
-                <div id = "CE" class = "buttons operator"><p>CE</p></div>
+                <div id = "CE" class = "buttons functional_buttons"><p>CE</p></div>
                 <div id = "sum" class = "buttons operator"><p>=</p></div>
             </div>
         </div>
@@ -53,17 +53,34 @@
             display();
         };
 
-        function displayResult(summary) {
-            const Display = document.getElementById('showresult');
-            Display.innerText = summary; 
-        };
+        function clearLastChar() {
+            if (myApp.numbers.length !== 0)
+                myApp.numbers.pop();
+            else if ((myApp.numbers.length === 0) && (myApp.join_numbers.length === myApp.operators.length))
+                myApp.operators.pop();
+            else if ((myApp.numbers.length === 0) && (myApp.join_numbers.length > myApp.operators.length)){
+                myApp.numbers = (String(myApp.join_numbers[myApp.join_numbers.length - 1])).split('');
+                myApp.numbers.pop();
+            }
 
-        function display(key){
+        }
+
+        function display(variable, clear_last_element){
             const Display = document.getElementById('showresult');
-            if (key != undefined)
-                Display.innerText += key; 
-            else
-                Display.innerText = '';
+            if ((clear_last_element === false) || ((clear_last_element === false) && (variable === undefined))) {
+                const temp_array = Display.innerText.split('').slice(0 , -1);
+                temp_array.push(variable);
+                Display.innerText =  temp_array.join('');
+            }
+            else if (clear_last_element === true){
+                Display.innerText = variable;
+            }
+            else {
+                if (variable != undefined)
+                    Display.innerText += variable; 
+                else
+                    Display.innerText = '';
+            };
         };
 
         function multiply() {
@@ -82,36 +99,38 @@
                 return true;
         };
 
-        function checkOperatorForSummary(i) {
+        function checkOperatorForSummary() {
             switch (myApp.operators[0]) {
                 case '+':
                     myApp.operators.shift();
-                    return myApp.join_numbers[0] + myApp.join_numbers[1];
+                    myApp.join_numbers[0] = myApp.join_numbers[0] + myApp.join_numbers[1];
+                    myApp.join_numbers.pop();
+                    return myApp.join_numbers[0];
 
                 case '-':
                     myApp.operators.shift();
-                    return myApp.join_numbers[0] - myApp.join_numbers[1];
+                    myApp.join_numbers[0] = myApp.join_numbers[0] - myApp.join_numbers[1];
+                    myApp.join_numbers.pop();
+                    return myApp.join_numbers[0];
             };
         };
 
         function summary(multiply_present){
-            let summary;
             if((multiply_present === true) && (myApp.operators.length === 0))
-                displayResult(myApp.join_numbers[0]);
+                display(myApp.join_numbers[0], true);
 
             const operators_lenght = myApp.operators.length;
             for (i = 0; i < operators_lenght; i++) {
                 if (myApp.join_numbers[2] == undefined) {
-                    summary = checkOperatorForSummary(i);
-                    displayResult(summary);
+                    display(checkOperatorForSummary(), true);
                 }
                 else {
-                    summary = checkOperatorForSummary(i);
                     myApp.join_numbers.shift();
                     myApp.join_numbers.shift();
-                    myApp.join_numbers.unshift(summary);
+                    myApp.join_numbers.unshift(checkOperatorForSummary());
                 };
             };
+            myApp.numbers[0] = myApp.join_numbers.pop();
         };
 
         function joinNumbers() {
@@ -128,7 +147,7 @@
                 number = parseInt(key.composedPath()[1].innerText);
             }
 
-            if (myApp.operators[0] === '-'){
+            if ((myApp.operators[0] === '-') && (myApp.join_numbers.length === 0)){
                 myApp.numbers[0] = myApp.operators + number;
                 myApp.operators.shift();
             }
@@ -139,86 +158,91 @@
 
         function saveOperator(key) {
             let operator = undefined;
-            if (typeof key === 'string') {
-                operator = key;
-            }
-            else {
-                operator = key.composedPath()[1].innerText;
-            }
+            (typeof key === 'string') ? (operator = key) : (operator = key.composedPath()[1].innerText); //Converting for right format.
 
             if (operator === '=') {
                 joinNumbers();
                 const found_multiply_operator = multiply();
-                found_multiply_operator ? summary(found_multiply_operator) : summary(); //if true no variable in summary else pass variable
+                found_multiply_operator ? summary(found_multiply_operator) : summary(); //if true no key in summary else pass key.
             }
             else {
                 myApp.operators[myApp.operators.length] = operator;
-                display(operator);
-                if (myApp.numbers[0] !== undefined)
+                if (myApp.numbers[0] !== undefined) { // Checking if numbers array is not empty.
                     joinNumbers();
+                    display(operator);
+                };
+                if ((myApp.operators.length > myApp.join_numbers.length)  && (myApp.numbers.length === 0)) { //Pressed operator second time.
+                    myApp.operators.pop();
+                    myApp.operators.pop();
+                    myApp.operators[myApp.operators.length] = operator; 
+                    display(operator, false);
+                };
             };
         };
-
-        function checkKeyboardKey(e) { //Sprawdzenie jaki klawisz został kliknięty na klawiaturze
-            let key = e.key;
-            switch (key){
-                case '+':
-                    saveOperator('+');
-                    break;
-
-                case '-':
-                    saveOperator('-');
-                    break;
-
-                case '*':
-                    saveOperator('*');
-                    break;
-
-                case '=':
-                    saveOperator('=');
-                    break;
-
-                case 'c':
-                case 'C':
-                case 'Backspace':
-                    clearLastChar();
-                    break;
-
-                case 'Delete':
-                    clearMyApp();
-                    break;
-
-                default:
-                    key = parseInt(key);
-                    for (let i = 0; i < 10; i++) {
-                        if (i === key){
-                            saveNumber(key);
-                            return;
-                        }
-                    };
-
-            };
-                
-        }
 
         //Dodawanie wszystkich Listenerów
         function init() {
             const digits = document.querySelectorAll('.digit');
             const operators = document.querySelectorAll('.operator');
-            window.addEventListener('keyup', () => { //Dodawanie eventów do kliknięć klawiaturą
-                    checkKeyboardKey(event);
-                });
+            const functional_buttons = document.querySelectorAll('.functional_buttons');
             digits.forEach((el) => { //Dodawanie eventów do numerów
                 el.addEventListener('click', () => {
                     saveNumber(event);
                 });
+            });
+            window.addEventListener('keyup', () => {
+                key = parseInt(event.key);
+                for (let i = 0; i < 10; i++) {
+                    if (i === key){
+                        saveNumber(key);
+                        return;
+                    }
+                };
             });
             operators.forEach((el) => { //Dodawanie eventów do operatorów
                 el.addEventListener('click', () => {
                     saveOperator(event);
                 });
             });
-            console.log('Loaded mouse events');
+            window.addEventListener('keyup', () => {
+                let key = event.key;
+                switch (key){
+                    case '+':
+                        saveOperator('+');
+                        break;
+                    case '-':
+                        saveOperator('-');
+                        break;
+                    case '*':
+                        saveOperator('*');
+                        break;
+                    case '=':
+                    case 'Enter':
+                        saveOperator('=');
+                        break;
+                };
+            });
+            functional_buttons.forEach((el) => { //Dodawanie eventów do operatorów
+                el.addEventListener('click', () => {
+                    (event.composedPath()[1].innerText === 'C') ? (clearLastChar(), display(undefined, false)) : clearMyApp();
+                    //if above statement is true do first bracket else do function after ':'.
+                });
+            });
+            window.addEventListener('keyup', () => {
+                let key = event.key;
+                switch (key) {
+                    case 'c':
+                    case 'C':
+                    case 'Backspace':
+                        clearLastChar();
+                        display(undefined, false);
+                        break;
+                    case 'Delete':
+                        clearMyApp();
+                        break;
+                }
+            });
+            console.log('Loaded mouse events and keyboard events');
         };
 
         document.addEventListener('DOMContentLoaded', init);
