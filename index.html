@@ -43,7 +43,8 @@
         let myApp = {
             numbers: [],
             operators: [],
-            join_numbers: []
+            join_numbers: [],
+            history: []
         }
 
         function clearMyApp() {
@@ -65,10 +66,11 @@
 
         }
 
-        function display(variable, clear_last_element){
+        function display(variable, clear_last_element, clear_n_elements){
             const Display = document.getElementById('showresult');
+            clear_n_elements === undefined ? clear_n_elements = -1 : clear_n_elements;
             if ((clear_last_element === false) || ((clear_last_element === false) && (variable === undefined))) {
-                const temp_array = Display.innerText.split('').slice(0 , -1);
+                const temp_array = Display.innerText.split('').slice(0 , clear_n_elements);
                 temp_array.push(variable);
                 Display.innerText =  temp_array.join('');
             }
@@ -104,7 +106,7 @@
                 case '+':
                     myApp.operators.shift();
                     myApp.join_numbers[0] = myApp.join_numbers[0] + myApp.join_numbers[1];
-                    myApp.join_numbers.pop();
+                    myApp.join_numbers.splice(1, 1);
                     return myApp.join_numbers[0];
 
                 case '-':
@@ -125,9 +127,7 @@
                     display(checkOperatorForSummary(), true);
                 }
                 else {
-                    myApp.join_numbers.shift();
-                    myApp.join_numbers.shift();
-                    myApp.join_numbers.unshift(checkOperatorForSummary());
+                    checkOperatorForSummary();
                 };
             };
             myApp.numbers[0] = myApp.join_numbers.pop();
@@ -144,8 +144,15 @@
                 number = key;
             }
             else {
-                number = parseInt(key.composedPath()[1].innerText);
-            }
+                try {
+                    number = parseInt(key.composedPath()[1].innerText); //Check if can convert to int if not 'key' must be '-'
+                }
+                catch {
+                    console.log('Second operator is minus');
+                    myApp.operators.pop(); //Deleting last operator. Minus will join in numbers array
+                    number = '-';
+                };
+            };
 
             if ((myApp.operators[0] === '-') && (myApp.join_numbers.length === 0)){
                 myApp.numbers[0] = myApp.operators + number;
@@ -159,7 +166,10 @@
         function saveOperator(key) {
             let operator = undefined;
             (typeof key === 'string') ? (operator = key) : (operator = key.composedPath()[1].innerText); //Converting for right format.
-
+            if ((myApp.numbers.length === 0) && (myApp.join_numbers.length === 0) && ((operator === '+') || (operator === '*') || (operator === '='))){
+                window.alert('Only minus is allowed as first operator');
+                return;
+            }
             if (operator === '=') {
                 joinNumbers();
                 const found_multiply_operator = multiply();
@@ -168,10 +178,21 @@
             else {
                 myApp.operators[myApp.operators.length] = operator;
                 if (myApp.numbers[0] !== undefined) { // Checking if numbers array is not empty.
-                    joinNumbers();
-                    display(operator);
+                    if ((myApp.numbers[0] == '-') && (typeof myApp.numbers[1] !== "number")){
+                        myApp.numbers = [];
+                        myApp.operators.pop();
+                        myApp.operators.pop();
+                        myApp.operators[myApp.operators.length] = operator; 
+                        display(operator, false, -2);
+                    }
+                    else {
+                        joinNumbers();
+                        display(operator);
+                    };
                 };
                 if ((myApp.operators.length > myApp.join_numbers.length)  && (myApp.numbers.length === 0)) { //Pressed operator second time.
+                    if ((operator === '-') && ((myApp.operators[myApp.operators.length - 2] === '*') || (myApp.operators[myApp.operators.length - 2] === '+')))
+                        return operator;
                     myApp.operators.pop();
                     myApp.operators.pop();
                     myApp.operators[myApp.operators.length] = operator; 
@@ -201,7 +222,9 @@
             });
             operators.forEach((el) => { //Dodawanie eventów do operatorów
                 el.addEventListener('click', () => {
-                    saveOperator(event);
+                    const second_operator_minus = saveOperator(event);
+                    if (second_operator_minus === '-')
+                        saveNumber(second_operator_minus);               
                 });
             });
             window.addEventListener('keyup', () => {
@@ -211,7 +234,9 @@
                         saveOperator('+');
                         break;
                     case '-':
-                        saveOperator('-');
+                        const second_operator_minus = saveOperator('-');
+                        if (second_operator_minus === '-')
+                            saveNumber(second_operator_minus);
                         break;
                     case '*':
                         saveOperator('*');
