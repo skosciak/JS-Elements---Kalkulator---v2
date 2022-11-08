@@ -38,23 +38,22 @@
         </div>
     </body>
     <script type="text/javascript">
-        //Ładowanie funkcji po otwarciu strony
 
-        let myApp = {
+        let myApp = {       //Global object to easy store and access.
             numbers: [],
             operators: [],
             join_numbers: [],
             history: []
         }
 
-        function clearMyApp() {
+        function clearMyApp() {     //Clearing whole App.
             myApp.join_numbers = [];
             myApp.operators = [];
             myApp.numbers = [];
             display();
         };
 
-        function clearLastChar() {
+        function clearLastChar() {      //Clearing last character at myApp object
             if (myApp.numbers.length !== 0)
                 myApp.numbers.pop();
             else if ((myApp.numbers.length === 0) && (myApp.join_numbers.length === myApp.operators.length))
@@ -66,9 +65,9 @@
 
         }
 
-        function display(variable, clear_last_element, clear_n_elements){
+        function display(variable, clear_last_element, clear_n_elements){ //Displaying, clearing last element or whole display.
             const Display = document.getElementById('showresult');
-            clear_n_elements === undefined ? clear_n_elements = -1 : clear_n_elements;
+            clear_n_elements === undefined ? clear_n_elements = -1 : clear_n_elements; //Checking if clear last element or more.
             if ((clear_last_element === false) || ((clear_last_element === false) && (variable === undefined))) {
                 const temp_array = Display.innerText.split('').slice(0 , clear_n_elements);
                 temp_array.push(variable);
@@ -85,7 +84,7 @@
             };
         };
 
-        function multiply() {
+        function multiply() {       //Prioritize multiply on operations.
             let loop_count = 0;
             const id_array_for_operators = [...myApp.operators];
             for (const i of myApp.operators) {
@@ -97,11 +96,11 @@
                 loop_count++;
             };
             myApp.operators = [...id_array_for_operators];
-            if (loop_count !== 0)
+            if (loop_count === 0)
                 return true;
         };
 
-        function checkOperatorForSummary() {
+        function operationPlusMinus() {     //Operations plus and minus.
             switch (myApp.operators[0]) {
                 case '+':
                     myApp.operators.shift();
@@ -117,39 +116,128 @@
             };
         };
 
-        function summary(multiply_present){
+        function summary(multiply_present){     //Pressed sum 
+            let returning_summary;
             if((multiply_present === true) && (myApp.operators.length === 0))
                 display(myApp.join_numbers[0], true);
 
             const operators_lenght = myApp.operators.length;
             for (i = 0; i < operators_lenght; i++) {
                 if (myApp.join_numbers[2] == undefined) {
-                    display(checkOperatorForSummary(), true);
+                    display(operationPlusMinus(), true);
                 }
                 else {
-                    checkOperatorForSummary();
+                    operationPlusMinus();
                 };
             };
-            myApp.numbers[0] = myApp.join_numbers.pop();
+            returning_summary = myApp.join_numbers[0];
+            myApp.numbers = String(myApp.join_numbers).split('').concat(myApp.numbers);
+            for (const key in myApp.numbers) {
+                parseInt(myApp.numbers[key]) ? myApp.numbers[key] = parseInt(myApp.numbers[key]) : console.log('Detected minus in summary');
+            }
+            myApp.join_numbers.pop();
+            return returning_summary;
         };
+
+        function history(sum) {
+            if(isFinite(sum)) {
+                myApp.history[myApp.history.length - 1] += (' ') + sum;
+                const height = []
+                const p_element = document.createElement('p');
+                const history_container = document.querySelector('#historycontainer');
+                p_element.setAttribute('id', 'showhistory' + myApp.history.length);
+                p_element.setAttribute('class', 'showhistory-p');
+                p_element.setAttribute('overflow', 'hidden');
+                p_element.setAttribute('position', 'relative');
+                history_container.insertAdjacentElement('afterbegin', p_element);
+                document.querySelector('.showhistory-p').style.top = -4.5 + 'rem';
+                p_element.innerText = myApp.history[myApp.history.length - 1];
+                for (let i = myApp.history.length; i >= 1; i--) {
+                    const id_show_history = document.querySelector('#showhistory' + i);
+                    id_show_history.animate([
+                    {
+                        top: '-4.5rem'
+                    }, {
+                        top: '0em'
+                    }],
+                    {
+                        duration: 1000,
+                        iteration: 1
+                    });
+                    id_show_history.style.top = 0 + 'rem';
+                };
+                height[0] = 0 + 'rem';
+                height[1] = 6.375 + 'rem';
+                height[2] = 6.375 + 4.5 * (myApp.history.length - 1) + 'rem';
+                height[3] = 6.375 + 4.5 * (myApp.history.length - 2) + 'rem';
+                if (myApp.history.length == 1) {
+                    history_container.animate([
+                       {
+                          height: height[0]
+                       }, {
+                          height: height[1]
+                      }],
+                       {
+                          duration: 250,
+                          iteration: 1
+                      });
+                    history_container.style.height = height[1];
+                }
+                else if (myApp.history.length == 2) {
+                    history_container.animate([
+                       {
+                          height: height[1]
+                       }, {
+                          height: height[2]
+                      }],
+                       {
+                          duration: 250,
+                          iteration: 1
+                      });
+                    history_container.style.height = height[2];
+                }
+                else if (myApp.history.length > 2) {
+                    history_container.animate([
+                       {
+                          height: height[3]
+                       }, {
+                          height: height[2]
+                      }],
+                       {
+                          duration: 250,
+                          iteration: 1
+                      });
+                    history_container.style.height = height[2];
+                };
+                history_container.style.overflow = 'auto';
+                return true;
+            }
+            else {
+                const temp_history = [];
+                for (const key in myApp.join_numbers) {
+                    myApp.operators[key] === undefined ? temp_history[key] = String(myApp.join_numbers[key]) + ' ' : temp_history[key] = String(myApp.join_numbers[key]) + ' ' + String(myApp.operators[key]);
+                }
+                myApp.history[myApp.history.length] = temp_history.join(' ') + String.fromCharCode(61);
+            };
+        }
 
         function joinNumbers() {
             myApp.join_numbers[myApp.join_numbers.length] = parseInt(myApp.numbers.join(''));
             myApp.numbers = [];
         };
 
-        function saveNumber(key) {
+        function saveNumber(key) {      //Saving numbers for later use
             let number = undefined;
             if (typeof key === 'number') {
                 number = key;
             }
             else {
                 try {
-                    number = parseInt(key.composedPath()[1].innerText); //Check if can convert to int if not 'key' must be '-'
+                    number = parseInt(key.composedPath()[1].innerText);     //Check if can convert to int if not 'key' must be '-'
                 }
                 catch {
                     console.log('Second operator is minus');
-                    myApp.operators.pop(); //Deleting last operator. Minus will join in numbers array
+                    myApp.operators.pop();      //Deleting last operator. Minus will join in numbers array
                     number = '-';
                 };
             };
@@ -163,17 +251,18 @@
             display(number);
         };
 
-        function saveOperator(key) {
+        function saveOperator(key) {    //Saving operator for later use
             let operator = undefined;
-            (typeof key === 'string') ? (operator = key) : (operator = key.composedPath()[1].innerText); //Converting for right format.
-            if ((myApp.numbers.length === 0) && (myApp.join_numbers.length === 0) && ((operator === '+') || (operator === '*') || (operator === '='))){
+            (typeof key === 'string') ? (operator = key) : (operator = key.composedPath()[1].innerText);                                                //Converting for right format from keyboard input or window keyboard.
+            if ((myApp.numbers.length === 0) && (myApp.join_numbers.length === 0) && ((operator === '+') || (operator === '*') || (operator === '='))){ //Checking if user pressed invalid first operator. Only minus allowed.
                 window.alert('Only minus is allowed as first operator');
                 return;
             }
-            if (operator === '=') {
-                joinNumbers();
+            if (operator === '=') { //Detected sum
+                joinNumbers();      //Clearing myApp.numbers array.
+                history();
                 const found_multiply_operator = multiply();
-                found_multiply_operator ? summary(found_multiply_operator) : summary(); //if true no key in summary else pass key.
+                found_multiply_operator ? history(summary(found_multiply_operator)) : history(summary()); //if true did multiply operations as first else no muliply detected.
             }
             else {
                 myApp.operators[myApp.operators.length] = operator;
@@ -191,22 +280,21 @@
                     };
                 };
                 if ((myApp.operators.length > myApp.join_numbers.length)  && (myApp.numbers.length === 0)) { //Pressed operator second time.
-                    if ((operator === '-') && ((myApp.operators[myApp.operators.length - 2] === '*') || (myApp.operators[myApp.operators.length - 2] === '+')))
-                        return operator;
+                    if ((operator === '-') && ((myApp.operators[myApp.operators.length - 2] === '*') || (myApp.operators[myApp.operators.length - 2] === '+')))     //Detecting if second operator is minus.
+                        return operator;    //Detected second operator minus. Next number will be at minus value.
                     myApp.operators.pop();
                     myApp.operators.pop();
                     myApp.operators[myApp.operators.length] = operator; 
-                    display(operator, false);
-                };
+                    display(operator, false);   //Second operator is not minus. Deleting second operator from myApp.operators array and replacing it with recently pressed operator.
+                };                              //Partially clearing display.
             };
         };
 
-        //Dodawanie wszystkich Listenerów
-        function init() {
+        function init() {   //Initialization all events at website.
             const digits = document.querySelectorAll('.digit');
             const operators = document.querySelectorAll('.operator');
             const functional_buttons = document.querySelectorAll('.functional_buttons');
-            digits.forEach((el) => { //Dodawanie eventów do numerów
+            digits.forEach((el) => {    //Adding events for numbers.
                 el.addEventListener('click', () => {
                     saveNumber(event);
                 });
@@ -220,7 +308,7 @@
                     }
                 };
             });
-            operators.forEach((el) => { //Dodawanie eventów do operatorów
+            operators.forEach((el) => {     //Adding events for operators.
                 el.addEventListener('click', () => {
                     const second_operator_minus = saveOperator(event);
                     if (second_operator_minus === '-')
@@ -234,7 +322,7 @@
                         saveOperator('+');
                         break;
                     case '-':
-                        const second_operator_minus = saveOperator('-');
+                        const second_operator_minus = saveOperator('-');    //Detecting if minus operator defining minus value or minus operation.
                         if (second_operator_minus === '-')
                             saveNumber(second_operator_minus);
                         break;
@@ -247,10 +335,10 @@
                         break;
                 };
             });
-            functional_buttons.forEach((el) => { //Dodawanie eventów do operatorów
+            functional_buttons.forEach((el) => {    //Adding events for functional buttons.
                 el.addEventListener('click', () => {
                     (event.composedPath()[1].innerText === 'C') ? (clearLastChar(), display(undefined, false)) : clearMyApp();
-                    //if above statement is true do first bracket else do function after ':'.
+                    //if above statement is true clear last element of not clear whole App.
                 });
             });
             window.addEventListener('keyup', () => {
