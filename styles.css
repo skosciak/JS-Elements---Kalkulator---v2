@@ -146,4 +146,7 @@ body {
 .showhistory-p {
     text-align: center;
     border-bottom: .125em solid var(--bg-border);
+    overflow: hidden;
+    position: relative;
+    top: -4.5rem;
 }
