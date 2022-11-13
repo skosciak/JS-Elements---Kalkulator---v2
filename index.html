@@ -43,7 +43,8 @@
             numbers: [],
             operators: [],
             join_numbers: [],
-            history: []
+            history: [],
+            f_clearLastChar: clearLastChar
         }
 
         function clearMyApp() {     //Clearing whole App.
@@ -56,13 +57,27 @@
         function clearLastChar() {      //Clearing last character at myApp object
             if (myApp.numbers.length !== 0)
                 myApp.numbers.pop();
-            else if ((myApp.numbers.length === 0) && (myApp.join_numbers.length === myApp.operators.length))
+            else if ((myApp.numbers.length === 0) && (myApp.join_numbers.length === myApp.operators.length)){
                 myApp.operators.pop();
-            else if ((myApp.numbers.length === 0) && (myApp.join_numbers.length > myApp.operators.length)){
-                myApp.numbers = (String(myApp.join_numbers[myApp.join_numbers.length - 1])).split('');
-                myApp.numbers.pop();
+                if (myApp.numbers.length === 0 && myApp.operators.length === 0){
+                    myApp.numbers = String(myApp.join_numbers[myApp.join_numbers.length - 1]).split('');
+                    myApp.join_numbers.pop();
+                };
+                for (const key in myApp.numbers) {
+                    if (!isNaN(parseInt(myApp.numbers[key])))
+                        myApp.numbers[key] = parseInt(myApp.numbers[key]);
+                };
             }
-
+            else if ((myApp.numbers.length === 0) && (myApp.join_numbers.length > myApp.operators.length)){
+                myApp.numbers = String(myApp.join_numbers[myApp.join_numbers.length - 1]).split('');
+                myApp.numbers.pop();
+                for (const key in myApp.numbers) {
+                    if (!isNaN(parseInt(myApp.numbers[key])))
+                        myApp.numbers[key] = parseInt(myApp.numbers[key]);
+                };
+                myApp.join_numbers.pop();
+            };
+            return true;
         }
 
         function display(variable, clear_last_element, clear_n_elements){ //Displaying, clearing last element or whole display.
@@ -120,13 +135,14 @@
             let returning_summary;
             joinNumbers();      //Clearing myApp.numbers array.
             if (myApp.join_numbers.length === myApp.operators.length)   //Checking if last charakter is not operator.
-                clearLastChar();
-            history();      //Saving whole operation without summary.
+                myApp.f_clearLastChar(); //Saving whole operation without summary.
             const multiply_present = multiply();
             if((multiply_present === true) && (myApp.operators.length === 0))
                 display(myApp.join_numbers[0], true);
 
             const operators_lenght = myApp.operators.length;
+            if (operators_lenght === 0)
+                return false;
             for (i = 0; i < operators_lenght; i++) {
                 if (myApp.join_numbers[2] == undefined) {
                     display(operationPlusMinus(), true);
@@ -138,14 +154,20 @@
             returning_summary = myApp.join_numbers[0];
             myApp.numbers = String(myApp.join_numbers).split('').concat(myApp.numbers);
             for (const key in myApp.numbers) {
-                Number(myApp.numbers[key]) ? myApp.numbers[key] = Number(myApp.numbers[key]) : console.log('Detected minus in summary');
+                Number(myApp.numbers[key]) ? myApp.numbers[key] = Number(myApp.numbers[key]) : console.log('Detected string, minus or NaN');
             }
             myApp.join_numbers.pop();
             return returning_summary;
         };
 
-        function history(sum) {
-            function afterSummary() {
+        function history() {     //Displaying, saving and adding p element to DOM.
+            function afterSummary(sum) {   //Displaying and saving whole operation with final result.
+                if (sum === false) {
+                    window.alert('Invalid operation, clearing whole app');
+                    clearMyApp();
+                    myApp.history.splice(myApp.history[myApp.history.length - 1], 1);
+                    return;
+                };
                 myApp.history[myApp.history.length - 1] += (' ') + sum;
                 const height = []
                 const p_element = document.createElement('p');
@@ -201,7 +223,7 @@
                 };
                 history_container.style.overflow = 'auto';
             }
-            function beforeSummary() {
+            function beforeSummary() {  //Saving operations before summary
                 const temp_history = [];
                 joinNumbers();
                 for (const key in myApp.join_numbers) {
@@ -209,7 +231,7 @@
                 }
                 myApp.history[myApp.history.length] = temp_history.join(' ') + String.fromCharCode(61);
             };
-            return {
+            return {    //Returning object reference for being visible outside function history();
                 afterSummary,
                 beforeSummary
             };
@@ -255,19 +277,6 @@
                 return;
             };
             myApp.operators[myApp.operators.length] = operator;
-            if (myApp.numbers[0] !== undefined) { // Checking if numbers array is not empty.
-                if ((myApp.numbers[0] == '-') && (typeof myApp.numbers[1] !== "number")){
-                    myApp.numbers = [];
-                    myApp.operators.pop();
-                    myApp.operators.pop();
-                    myApp.operators[myApp.operators.length] = operator; 
-                    display(operator, false, -2);
-                }
-                else {
-                    joinNumbers();
-                    display(operator);
-                };
-            };
             if ((myApp.operators.length > myApp.join_numbers.length)  && (myApp.numbers.length === 0)) { //Pressed operator second time.
                 if ((operator === '-') && ((myApp.operators[myApp.operators.length - 2] === '*') || (myApp.operators[myApp.operators.length - 2] === '+')))     //Detecting if second operator is minus.
                     return operator;    //Detected second operator minus. Next number will be at minus value.
@@ -275,7 +284,25 @@
                 myApp.operators.pop();
                 myApp.operators[myApp.operators.length] = operator; 
                 display(operator, false);   //Second operator is not minus. Deleting second operator from myApp.operators array and replacing it with recently pressed operator.
-            };                              //Partially clearing display.
+            }                               //Partially clearing display.
+            else {
+                if (isNaN(parseInt(myApp.numbers)) && (myApp.numbers.length !== 0)){
+                    if (typeof myApp.numbers[myApp.numbers.length - 1] === 'number'){
+                        joinNumbers();
+                        display(operator);
+                        return;
+                    };
+                    myApp.numbers.pop()
+                    myApp.operators.pop();
+                    myApp.operators.pop();
+                    myApp.operators[myApp.operators.length] = operator; 
+                    display(operator, false, -2);
+                }
+                else{
+                    joinNumbers();
+                    display(operator);
+                };
+            };
         };
 
         function init() {   //Initialization all events at website.
@@ -322,7 +349,7 @@
             });
             functional_buttons.forEach((el) => {    //Adding events for functional buttons.
                 el.addEventListener('click', () => {
-                    (event.composedPath()[1].innerText === 'C') ? (clearLastChar(), display(undefined, false)) : clearMyApp();
+                    (event.composedPath()[1].innerText === 'C') ? (myApp.f_clearLastChar(), display(undefined, false)) : clearMyApp();
                     //if above statement is true clear last element of not clear whole App.
                 });
             });
@@ -332,7 +359,7 @@
                     case 'c':
                     case 'C':
                     case 'Backspace':
-                        clearLastChar();
+                        myApp.f_clearLastChar();
                         display(undefined, false);
                         break;
                     case 'Delete':
@@ -342,13 +369,13 @@
             });
             summary.addEventListener('click', () => {
                 history().beforeSummary();
-                history(summary()).afterSummary();
+                history().afterSummary(doSummary());
             });
             window.addEventListener('keyup', () => {
                 let key = event.key;
                 if (key === 'Enter' || key === '=') {
                     history().beforeSummary();
-                    history(doSummary()).afterSummary();
+                    history().afterSummary(doSummary());
                 };
             });
             console.log('Loaded mouse events and keyboard events');
